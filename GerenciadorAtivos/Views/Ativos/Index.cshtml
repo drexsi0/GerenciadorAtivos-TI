@@ -1,71 +1,69 @@
 ﻿@model IEnumerable<GerenciadorAtivos.Models.Ativo>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Listagem de Ativos";
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>📦 Inventário de TI</h1>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fa fa-plus"></i> Novo Ativo
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
+<table class="table table-hover table-striped">
+    <thead class="table-dark">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Nome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Patrimonio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Tipo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Marca)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Modelo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Setor)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Nome)</th>
+            <th>@Html.DisplayNameFor(model => model.Patrimonio)</th>
+            <th>@Html.DisplayNameFor(model => model.Tipo)</th>
+            <th>@Html.DisplayNameFor(model => model.Setor)</th>
+            <th>Status</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nome)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Patrimonio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Tipo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Marca)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Modelo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Setor)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="fw-bold">@Html.DisplayFor(modelItem => item.Nome)</td>
+                <td><code>@Html.DisplayFor(modelItem => item.Patrimonio)</code></td>
+                <td>@Html.DisplayFor(modelItem => item.Tipo)</td>
+                <td>@Html.DisplayFor(modelItem => item.Setor)</td>
+                <td>
+                    @{
+                        string corBadge = "bg-secondary"; // Cor padrão (cinza)
+
+                        if (item.Status == GerenciadorAtivos.Models.StatusAtivo.Disponivel)
+                        {
+                            corBadge = "bg-success"; // Verde
+                        }
+                        else if (item.Status == GerenciadorAtivos.Models.StatusAtivo.EmUso)
+                        {
+                            corBadge = "bg-primary"; // Azul
+                        }
+                        else if (item.Status == GerenciadorAtivos.Models.StatusAtivo.Manutencao)
+                        {
+                            corBadge = "bg-warning text-dark"; // Amarelo
+                        }
+                        else if (item.Status == GerenciadorAtivos.Models.StatusAtivo.Descartado)
+                        {
+                            corBadge = "bg-danger"; // Vermelho
+                        }
+                    }
+
+                    <span class="badge @corBadge">
+                        @Html.DisplayFor(modelItem => item.Status)
+                    </span>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary">Editar</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info">Ver</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Excluir</a>
+                    </div>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
