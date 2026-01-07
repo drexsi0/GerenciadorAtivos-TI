@@ -11,6 +11,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
+// --- INÍCIO DO SEED DATA ---
+// Cria um escopo temporário para pegar o banco de dados
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        DbInitializer.Initialize(context); // Chama nossa classe de criação de dados
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Um erro ocorreu ao popular o banco de dados.");
+    }
+}
+// --- FIM DO SEED DATA ---
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
