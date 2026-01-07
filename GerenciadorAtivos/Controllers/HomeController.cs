@@ -1,14 +1,42 @@
-using System.Diagnostics;
-using GerenciadorAtivos.Models;
+using GerenciadorAtivos.Data; // Importante para ver o banco
+using GerenciadorAtivos.Models; // Importante para ver os Enums
+using GerenciadorAtivos.Models.ViewModels; // Importante para ver a ViewModel
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace GerenciadorAtivos.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context; // 1. Campo para guardar o banco
+
+        // 2. Injeção de Dependência no Construtor
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+        {
+            _logger = logger;
+            _context = context; // O sistema entrega o banco pronto aqui
+        }
+
         public IActionResult Index()
         {
-            return View();
+            // 3. Montando os dados para a tela usando LINQ (Consultas)
+            var viewModel = new DashboardViewModel
+            {
+                TotalAtivos = _context.Ativos.Count(),
+
+                EmUso = _context.Ativos
+                            .Count(x => x.Status == StatusAtivo.EmUso),
+
+                Disponiveis = _context.Ativos
+                            .Count(x => x.Status == StatusAtivo.Disponivel),
+
+                EmManutencao = _context.Ativos
+                            .Count(x => x.Status == StatusAtivo.Manutencao)
+            };
+
+            // 4. Envia a ViewModel preenchida para a View
+            return View(viewModel);
         }
 
         public IActionResult Privacy()

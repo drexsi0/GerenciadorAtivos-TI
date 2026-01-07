@@ -1,8 +1,58 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model GerenciadorAtivos.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mb-5">
+    <h1 class="display-4">Visão Geral</h1>
+    <p>Monitoramento de Ativos de TI em Tempo Real</p>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-secondary mb-3 shadow">
+            <div class="card-header">Total de Ativos</div>
+            <div class="card-body">
+                <h2 class="card-title text-center">@Model.TotalAtivos</h2>
+                <p class="card-text text-center"><small>Cadastrados</small></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3 shadow">
+            <div class="card-header">Disponíveis</div>
+            <div class="card-body">
+                <h2 class="card-title text-center">@Model.Disponiveis</h2>
+                <p class="card-text text-center"><small>No Estoque</small></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3 shadow">
+            <div class="card-header">Em Uso</div>
+            <div class="card-body">
+                <h2 class="card-title text-center">@Model.EmUso</h2>
+                <p class="card-text text-center"><small>Com Colaboradores</small></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-dark bg-warning mb-3 shadow">
+            <div class="card-header">Manutenção</div>
+            <div class="card-body">
+                <h2 class="card-title text-center">@Model.EmManutencao</h2>
+                <p class="card-text text-center"><small>Atenção Necessária</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a asp-controller="Ativos" asp-action="Index" class="btn btn-lg btn-outline-dark">
+        Gerenciar Inventário Completo &rarr;
+    </a>
 </div>
