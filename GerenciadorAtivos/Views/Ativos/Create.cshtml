@@ -27,7 +27,7 @@
             <div class="form-group mb-3">
                 <label asp-for="Tipo" class="control-label"></label>
                 <select asp-for="Tipo" class="form-control" asp-items="Html.GetEnumSelectList<GerenciadorAtivos.Models.TipoAtivo>()">
-                    <option value="">-- Selecione um Tipo --</option>
+                    <option value="">Selecione um Tipo...</option>
                 </select>
                 <span asp-validation-for="Tipo" class="text-danger"></span>
             </div>
@@ -53,7 +53,7 @@
             <div class="form-group mb-3">
                 <label asp-for="Status" class="control-label"></label>
                 <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<GerenciadorAtivos.Models.StatusAtivo>()">
-                    <option value="">Selecione uma opção...</option>
+                    <option value="">Selecione um Status...</option>
                 </select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
