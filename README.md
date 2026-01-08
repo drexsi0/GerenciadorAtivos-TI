@@ -13,11 +13,11 @@ Visão geral com indicadores de status em tempo real.
 
 ### Listagem de Ativos
 Controle de inventário com indicadores visuais de status.
-<img width="1850" height="914" alt="Image" src="https://github.com/user-attachments/assets/8a2fac6f-0c7c-4e93-8133-31131ecdba72" />
+<img width="1850" height="917" alt="Image" src="https://github.com/user-attachments/assets/41fc90ed-dd97-4407-a027-4900a36fa134" />
 
 ### Cadastro e Validação
 Formulários com validação de dados e feedback visual em Português.
-<img width="1832" height="917" alt="Image" src="https://github.com/user-attachments/assets/ee6fb507-cd1d-450a-9583-b9563f7f5edc" />
+<img width="1830" height="918" alt="Image" src="https://github.com/user-attachments/assets/c5113455-5280-48ae-ac7d-f6688a56a808" />
 
 ---
 
