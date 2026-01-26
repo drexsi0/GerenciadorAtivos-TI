@@ -20,26 +20,31 @@ namespace GerenciadorAtivos.Controllers
         }
 
         // GET: Ativos
-        // Agora o método aceita um parâmetro "searchString" que vem da URL
-        public async Task<IActionResult> Index(string searchString)
+        public async Task<IActionResult> Index(string searchString, GerenciadorAtivos.Models.StatusAtivo? statusFilter)
         {
-            // AQUI: Guarda o que foi digitado para a View poder exibir de volta no input
+            // 1. Guarda os filtros para a View poder "lembrar" deles
             ViewData["CurrentFilter"] = searchString;
+            ViewData["CurrentStatus"] = statusFilter;
 
-            // 1. Cria a consulta base (SELECT * FROM Ativos), mas NÃO executa ainda no banco
+            // 2. Query Base
             var ativos = from m in _context.Ativos
                          select m;
 
-            // 2. Se o usuário digitou algo na busca...
+            // 3. Aplica Filtro de Texto (se houver)
             if (!String.IsNullOrEmpty(searchString))
             {
-                // ...adiciona um filtro WHERE na consulta
-                // Procura se o Nome OU o Patrimônio contêm o texto digitado
                 ativos = ativos.Where(s => s.Nome.Contains(searchString)
                                         || s.Patrimonio.Contains(searchString));
             }
 
-            // 3. Executa a consulta no banco e retorna a lista filtrada para a View
+            // 4. Aplica Filtro de Status (se houver)
+            // O ".HasValue" serve para verificar se o usuário selecionou algo no dropdown (não nulo)
+            if (statusFilter.HasValue)
+            {
+                ativos = ativos.Where(s => s.Status == statusFilter.Value);
+            }
+
+            // 5. Executa e retorna
             return View(await ativos.ToListAsync());
         }
 
