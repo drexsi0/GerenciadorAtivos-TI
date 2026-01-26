@@ -1,24 +1,28 @@
-﻿@model IEnumerable<GerenciadorAtivos.Models.Ativo>
+﻿@model GerenciadorAtivos.Helpers.PaginatedList<GerenciadorAtivos.Models.Ativo>
 
 @{
     ViewData["Title"] = "Listagem de Ativos";
 
-    // 1. TRUQUE DO DROPDOWN (Memória)
-    // Pega a lista padrão do Enum
+    // 1. Gera a lista baseada no Enum
     var listaStatus = Html.GetEnumSelectList<GerenciadorAtivos.Models.StatusAtivo>();
 
-    // Verifica qual estava selecionado (converte para número texto, ex: "1")
-    var statusSelecionado = ViewData["CurrentStatus"] != null
-                            ? ((int)ViewData["CurrentStatus"]).ToString()
-                            : "";
+    // 2. Recupera o objeto cru do ViewData
+    var rawStatus = ViewData["CurrentStatus"];
 
-    // Marca o item correto como "selected"
-    foreach (var item in listaStatus)
+    // 3. Verifica se NÃO é nulo antes de mexer (Isso elimina o Warning CS8605)
+    if (rawStatus != null)
     {
-        if (item.Value == statusSelecionado)
+        // Converte explicitamente para int (pega o número 1, 2...) e depois para String
+        string valorParaComparar = ((int)rawStatus).ToString();
+
+        // 4. Marca o item correto
+        foreach (var item in listaStatus)
         {
-            item.Selected = true;
-            break;
+            if (item.Value == valorParaComparar)
+            {
+                item.Selected = true;
+                break;
+            }
         }
     }
 }
@@ -68,10 +72,10 @@
 <table class="table table-hover table-striped">
     <thead class="thead-azul">
         <tr>
-            <th>@Html.DisplayNameFor(model => model.Nome)</th>
-            <th>@Html.DisplayNameFor(model => model.Patrimonio)</th>
-            <th>@Html.DisplayNameFor(model => model.Tipo)</th>
-            <th>@Html.DisplayNameFor(model => model.Setor)</th>
+            <th>Nome</th>
+            <th>Patrimônio</th>
+            <th>Tipo</th>
+            <th>Setor</th>
             <th>Status</th>
             <th>Ações</th>
         </tr>
@@ -105,3 +109,30 @@
         }
     </tbody>
 </table>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+
+<div class="d-flex justify-content-center align-items-center mt-4 gap-3">
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-statusFilter="@ViewData["CurrentStatus"]"
+       asp-route-searchString="@ViewData["CurrentFilter"]"
+       class="btn btn-outline-primary @prevDisabled">
+        &laquo; Anterior
+    </a>
+
+    <span class="fw-bold text-muted">
+        Página @Model.PageIndex de @Model.TotalPages
+    </span>
+
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-statusFilter="@ViewData["CurrentStatus"]"
+       asp-route-searchString="@ViewData["CurrentFilter"]"
+       class="btn btn-outline-primary @nextDisabled">
+        Próximo &raquo;
+    </a>
+</div>

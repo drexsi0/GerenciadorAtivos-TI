@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GerenciadorAtivos.Data;
 using GerenciadorAtivos.Models;
+using GerenciadorAtivos.Helpers;
 
 namespace GerenciadorAtivos.Controllers
 {
@@ -20,32 +21,36 @@ namespace GerenciadorAtivos.Controllers
         }
 
         // GET: Ativos
-        public async Task<IActionResult> Index(string searchString, GerenciadorAtivos.Models.StatusAtivo? statusFilter)
+        // Adicionamos o parâmetro "pageNumber" (pode ser nulo, se for a 1ª vez é null)
+        public async Task<IActionResult> Index(string searchString, GerenciadorAtivos.Models.StatusAtivo? statusFilter, int? pageNumber)
         {
-            // 1. Guarda os filtros para a View poder "lembrar" deles
+            // 1. Mantém os filtros na memória para não perder quando trocar de página
             ViewData["CurrentFilter"] = searchString;
             ViewData["CurrentStatus"] = statusFilter;
 
-            // 2. Query Base
             var ativos = from m in _context.Ativos
                          select m;
 
-            // 3. Aplica Filtro de Texto (se houver)
+            // 2. Aplica os filtros (igual fizemos antes)
             if (!String.IsNullOrEmpty(searchString))
             {
-                ativos = ativos.Where(s => s.Nome.Contains(searchString)
-                                        || s.Patrimonio.Contains(searchString));
+                ativos = ativos.Where(s => s.Nome.Contains(searchString) || s.Patrimonio.Contains(searchString));
             }
 
-            // 4. Aplica Filtro de Status (se houver)
-            // O ".HasValue" serve para verificar se o usuário selecionou algo no dropdown (não nulo)
             if (statusFilter.HasValue)
             {
                 ativos = ativos.Where(s => s.Status == statusFilter.Value);
             }
 
-            // 5. Executa e retorna
-            return View(await ativos.ToListAsync());
+            // 3. Ordenação (Opcional, mas recomendado ordenar por ID ou Nome para a paginação não ficar doida)
+            ativos = ativos.OrderByDescending(x => x.Id);
+
+            // 4. Define o tamanho da página (Vamos usar 5 para testar, depois você aumenta para 10 ou 20)
+            int pageSize = 5;
+
+            // 5. Retorna a Lista Paginada
+            // O "pageNumber ?? 1" significa: se o número da página for nulo, use 1.
+            return View(await PaginatedList<GerenciadorAtivos.Models.Ativo>.CreateAsync(ativos.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: Ativos/Details/5
