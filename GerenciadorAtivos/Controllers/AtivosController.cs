@@ -20,9 +20,27 @@ namespace GerenciadorAtivos.Controllers
         }
 
         // GET: Ativos
-        public async Task<IActionResult> Index()
+        // Agora o método aceita um parâmetro "searchString" que vem da URL
+        public async Task<IActionResult> Index(string searchString)
         {
-            return View(await _context.Ativos.ToListAsync());
+            // AQUI: Guarda o que foi digitado para a View poder exibir de volta no input
+            ViewData["CurrentFilter"] = searchString;
+
+            // 1. Cria a consulta base (SELECT * FROM Ativos), mas NÃO executa ainda no banco
+            var ativos = from m in _context.Ativos
+                         select m;
+
+            // 2. Se o usuário digitou algo na busca...
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                // ...adiciona um filtro WHERE na consulta
+                // Procura se o Nome OU o Patrimônio contêm o texto digitado
+                ativos = ativos.Where(s => s.Nome.Contains(searchString)
+                                        || s.Patrimonio.Contains(searchString));
+            }
+
+            // 3. Executa a consulta no banco e retorna a lista filtrada para a View
+            return View(await ativos.ToListAsync());
         }
 
         // GET: Ativos/Details/5
