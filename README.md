@@ -2,7 +2,7 @@
 
 Sistema corporativo para gerenciamento e controle de inventário de ativos de TI (Hardware e Periféricos). Desenvolvido como projeto de portfólio focando em boas práticas de Engenharia de Software, Arquitetura MVC e Rastreabilidade.
 
-![Badge](https://img.shields.io/badge/Status-Versao%201.1%20%28Sprint%202%29-blue) ![.NET](https://img.shields.io/badge/.NET-ASP.NET_Core-purple)
+![Badge](https://img.shields.io/badge/Status-Versao%201.1.0-blue) ![.NET](https://img.shields.io/badge/.NET-ASP.NET_Core-purple)
 
 
 ## Screenshots
@@ -16,7 +16,7 @@ Controle de inventário com filtros avançados (Nome/Patrimônio + Status) e pagina
 <img width="1854" height="909" alt="Image" src="https://github.com/user-attachments/assets/85a0c441-584a-465a-9a57-42ceed979fc1" />
 
 ### Cadastro e Validação
-Formulários com validação de dados e feedback visual em Português.
+Formulários com validação de dados e feedback visual.
 <img width="1830" height="918" alt="Image" src="https://github.com/user-attachments/assets/c5113455-5280-48ae-ac7d-f6688a56a808" />
 
 ### Detalhes e Rastreabilidade
