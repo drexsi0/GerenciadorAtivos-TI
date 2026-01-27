@@ -10,5 +10,6 @@ namespace GerenciadorAtivos.Data
         }
 
         public DbSet<Ativo> Ativos { get; set; }
+        public DbSet<Historico> Historicos { get; set; }
     }
 }

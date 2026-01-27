@@ -56,17 +56,14 @@ namespace GerenciadorAtivos.Controllers
         // GET: Ativos/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var ativo = await _context.Ativos
+                // O "Include" é a mágica: traz os dados da tabela relacionada junto!
+                .Include(a => a.Historicos)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (ativo == null)
-            {
-                return NotFound();
-            }
+
+            if (ativo == null) return NotFound();
 
             return View(ativo);
         }
@@ -87,7 +84,11 @@ namespace GerenciadorAtivos.Controllers
             if (ModelState.IsValid)
             {
                 _context.Add(ativo);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Aqui o ativo ganha o ID
+
+                // ADICIONE ESTA LINHA:
+                await RegistrarHistorico(ativo.Id, "Criação", "Ativo cadastrado inicialmente no sistema.");
+
                 return RedirectToAction(nameof(Index));
             }
             return View(ativo);
@@ -127,6 +128,9 @@ namespace GerenciadorAtivos.Controllers
                 {
                     _context.Update(ativo);
                     await _context.SaveChangesAsync();
+
+                    // ADICIONE ESTA LINHA:
+                    await RegistrarHistorico(ativo.Id, "Atualização", $"Dados do ativo atualizados. Status atual: {ativo.Status}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -181,5 +185,21 @@ namespace GerenciadorAtivos.Controllers
         {
             return _context.Ativos.Any(e => e.Id == id);
         }
+    
+    // Método auxiliar para registrar histórico sem repetir código
+private async Task RegistrarHistorico(int ativoId, string tipoAcao, string descricao)
+        {
+            var historico = new Historico
+            {
+                AtivoId = ativoId,
+                TipoAcao = tipoAcao,
+                Descricao = descricao,
+                DataAcao = DateTime.Now
+            };
+
+            _context.Add(historico);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

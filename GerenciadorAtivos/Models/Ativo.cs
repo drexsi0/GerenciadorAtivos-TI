@@ -33,6 +33,9 @@ namespace GerenciadorAtivos.Models
 
         [Required(ErrorMessage = "Defina o status inicial.")]
         public StatusAtivo? Status { get; set; }
+
+        // Cria a lista vazia para evitar erro de "NullReference" ao tentar adicionar algo
+        public virtual ICollection<Historico> Historicos { get; set; } = new List<Historico>();
     }
 
     public enum TipoAtivo { Notebook, Desktop, Monitor, Periferico, Servidor }
