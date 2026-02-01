@@ -20,22 +20,28 @@ namespace GerenciadorAtivos.Controllers
 
         public IActionResult Index()
         {
-            // 3. Montando os dados para a tela usando LINQ (Consultas)
+            var ativos = _context.Ativos.ToList();
+
             var viewModel = new DashboardViewModel
             {
-                TotalAtivos = _context.Ativos.Count(),
+                TotalAtivos = ativos.Count,
+                EmUso = ativos.Count(x => x.Status == StatusAtivo.EmUso),
+                Disponiveis = ativos.Count(x => x.Status == StatusAtivo.Disponivel),
+                EmManutencao = ativos.Count(x => x.Status == StatusAtivo.Manutencao),
 
-                EmUso = _context.Ativos
-                            .Count(x => x.Status == StatusAtivo.EmUso),
+                // Removida a lógica de ValorTotalPatrimonio
 
-                Disponiveis = _context.Ativos
-                            .Count(x => x.Status == StatusAtivo.Disponivel),
+                AtivosPorStatus = ativos
+                    .GroupBy(x => x.Status)
+                    .ToDictionary(
+                        g => g.Key?.ToString() ?? string.Empty, // Ensure non-null string key
+                        g => g.Count()),
 
-                EmManutencao = _context.Ativos
-                            .Count(x => x.Status == StatusAtivo.Manutencao)
+                AtivosPorSetor = ativos
+                    .GroupBy(x => x.Setor)
+                    .ToDictionary(g => g.Key.ToString(), g => g.Count())
             };
 
-            // 4. Envia a ViewModel preenchida para a View
             return View(viewModel);
         }
 

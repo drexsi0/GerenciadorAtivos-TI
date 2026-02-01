@@ -6,7 +6,7 @@
 
 <div class="text-center mb-5">
     <h1 class="display-4">Visão Geral</h1>
-    <p>Monitoramento de Ativos de TI em Tempo Real</p>
+    <p class="text-muted">Monitoramento de Ativos de TI em Tempo Real</p>
 </div>
 
 <div class="row">
@@ -19,7 +19,6 @@
             </div>
         </div>
     </div>
-
     <div class="col-md-3">
         <div class="card text-white bg-success mb-3 shadow">
             <div class="card-header">Disponíveis</div>
@@ -29,7 +28,6 @@
             </div>
         </div>
     </div>
-
     <div class="col-md-3">
         <div class="card text-white bg-primary mb-3 shadow">
             <div class="card-header">Em Uso</div>
@@ -39,7 +37,6 @@
             </div>
         </div>
     </div>
-
     <div class="col-md-3">
         <div class="card text-dark bg-warning mb-3 shadow">
             <div class="card-header">Manutenção</div>
@@ -51,8 +48,83 @@
     </div>
 </div>
 
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ativos por Setor</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-bar">
+                    <canvas id="graficoSetor"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Distribuição de Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie">
+                    <canvas id="graficoStatus"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mt-4 text-center">
     <a asp-controller="Ativos" asp-action="Index" class="btn btn-lg btn-outline-dark">
         Gerenciar Inventário Completo &rarr;
     </a>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // -- Configuração do Gráfico de SETOR (Barras) --
+        var ctxSetor = document.getElementById('graficoSetor').getContext('2d');
+        var dadosSetor = @Html.Raw(Json.Serialize(Model.AtivosPorSetor));
+
+        new Chart(ctxSetor, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(dadosSetor),
+                datasets: [{
+                    label: 'Quantidade',
+                    data: Object.values(dadosSetor),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+
+        // -- Configuração do Gráfico de STATUS (Rosca) --
+        var ctxStatus = document.getElementById('graficoStatus').getContext('2d');
+        var dadosStatus = @Html.Raw(Json.Serialize(Model.AtivosPorStatus));
+
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(dadosStatus),
+                datasets: [{
+                    data: Object.values(dadosStatus),
+                    backgroundColor: ['#198754', '#0d6efd', '#ffc107', '#6c757d'],
+                    hoverOffset: 4
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+}
