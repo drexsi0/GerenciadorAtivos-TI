@@ -38,36 +38,36 @@
 @if (Model.Historicos != null && Model.Historicos.Any())
 {
     <div class="table-responsive">
-        <table class="table table-sm table-bordered">
-            <thead class="table-light">
+        <table class="table table-bordered">
+            <thead>
                 <tr>
-                    <th style="width: 180px;">Data/Hora</th>
-                    <th style="width: 150px;">Ação</th>
+                    <th>Data/Hora</th>
+                    <th>Usuário</th>
+                    <th>Ação</th>
                     <th>Detalhes</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var hist in Model.Historicos.OrderByDescending(x => x.DataAcao))
+                @foreach (var item in Model.Historicos.OrderByDescending(h => h.DataAcao))
                 {
                     <tr>
-                        <td class="text-muted small">@hist.DataAcao.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@item.DataAcao.ToString("dd/MM/yyyy HH:mm")</td>
+
                         <td>
-                            @if (hist.TipoAcao == "Criação")
+                            @(string.IsNullOrEmpty(item.Usuario) ? "Sistema" : item.Usuario)
+                        </td>
+
+                        <td>
+                            @if (item.TipoAcao == "Criação")
                             {
                                 <span class="badge bg-success">Criação</span>
                             }
-                            else if (hist.TipoAcao == "Atualização")
-                            {
-
-                                <span class="badge bg-warning text-dark">Edição</span>
-                            }
                             else
                             {
-
-                                <span class="badge bg-secondary">@hist.TipoAcao</span>
+                                <span class="badge bg-secondary">@item.TipoAcao</span>
                             }
                         </td>
-                        <td class="small">@hist.Descricao</td>
+                        <td>@item.Descricao</td>
                     </tr>
                 }
             </tbody>

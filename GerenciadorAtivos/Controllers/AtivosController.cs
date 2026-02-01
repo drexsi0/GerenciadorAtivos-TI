@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using GerenciadorAtivos.Data;
 using GerenciadorAtivos.Models;
 using GerenciadorAtivos.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GerenciadorAtivos.Controllers
 {
+    [Authorize]
     public class AtivosController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -194,10 +196,12 @@ private async Task RegistrarHistorico(int ativoId, string tipoAcao, string descr
                 AtivoId = ativoId,
                 TipoAcao = tipoAcao,
                 Descricao = descricao,
-                DataAcao = DateTime.Now
+                DataAcao = DateTime.Now,
+                Usuario = User.Identity?.Name ?? "Sistema"
+
             };
 
-            _context.Add(historico);
+            _context.Historicos.Add(historico);
             await _context.SaveChangesAsync();
         }
 

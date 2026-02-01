@@ -27,5 +27,7 @@ namespace GerenciadorAtivos.Models
 
         [Display(Name = "Descrição")]
         public string Descricao { get; set; } // Ex: "Mudou status de Disponível para Em Uso"
+
+        public string? Usuario { get; set; }
     }
 }
