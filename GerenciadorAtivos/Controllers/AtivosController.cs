@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GerenciadorAtivos.Data;
 using GerenciadorAtivos.Models;
-using GerenciadorAtivos.Helpers;
 using Microsoft.AspNetCore.Authorization;
+using X.PagedList; // Importante para o StaticPagedList
 
 namespace GerenciadorAtivos.Controllers
 {
@@ -23,62 +23,76 @@ namespace GerenciadorAtivos.Controllers
         }
 
         // GET: Ativos
-        // Adicionamos o parâmetro "pageNumber" (pode ser nulo, se for a 1ª vez é null)
-        public async Task<IActionResult> Index(string searchString, GerenciadorAtivos.Models.StatusAtivo? statusFilter, int? pageNumber)
+        public async Task<IActionResult> Index(int? pageNumber, string searchString, StatusAtivo? statusFilter, SetorAtivo? setorFilter, TipoAtivo? tipoFilter)
         {
-            // 1. Mantém os filtros na memória para não perder quando trocar de página
+            // 1. Guardar os filtros na ViewData para a View conseguir "lembrar" deles
             ViewData["CurrentFilter"] = searchString;
-            ViewData["CurrentStatus"] = statusFilter;
+            ViewData["StatusFilter"] = statusFilter;
+            ViewData["SetorFilter"] = setorFilter;
+            ViewData["TipoFilter"] = tipoFilter;
 
-            var ativos = from m in _context.Ativos
-                         select m;
+            var query = _context.Ativos.AsQueryable();
 
-            // 2. Aplica os filtros (igual fizemos antes)
-            if (!String.IsNullOrEmpty(searchString))
+            // 2. Filtros
+            if (!string.IsNullOrEmpty(searchString))
             {
-                ativos = ativos.Where(s => s.Nome.Contains(searchString) || s.Patrimonio.Contains(searchString));
+                query = query.Where(s => s.Nome.Contains(searchString) || s.Patrimonio.Contains(searchString));
             }
 
             if (statusFilter.HasValue)
             {
-                ativos = ativos.Where(s => s.Status == statusFilter.Value);
+                query = query.Where(x => x.Status == statusFilter.Value);
             }
 
-            // 3. Ordenação (Opcional, mas recomendado ordenar por ID ou Nome para a paginação não ficar doida)
-            ativos = ativos.OrderByDescending(x => x.Id);
+            if (setorFilter.HasValue)
+            {
+                // Agora buscamos pelo NÚMERO (ex: "1"), pois o Dropdown salva o ID
+                string setorId = ((int)setorFilter.Value).ToString();
+                query = query.Where(x => x.Setor == setorId);
+            }
 
-            // 4. Define o tamanho da página (Vamos usar 5 para testar, depois você aumenta para 10 ou 20)
-            int pageSize = 5;
+            if (tipoFilter.HasValue)
+            {
+                query = query.Where(x => x.Tipo == tipoFilter.Value);
+            }
 
-            // 5. Retorna a Lista Paginada
-            // O "pageNumber ?? 1" significa: se o número da página for nulo, use 1.
-            return View(await PaginatedList<GerenciadorAtivos.Models.Ativo>.CreateAsync(ativos.AsNoTracking(), pageNumber ?? 1, pageSize));
+            // 3. Ordenação (Do mais novo para o mais antigo)
+            query = query.OrderByDescending(x => x.Id);
+
+            // 4. Paginação MANUAL (Resolve o erro CS1061 e é mais leve)
+            int pageSize = 10;
+            int pageIndex = pageNumber ?? 1;
+
+            // A. Conta quantos itens sobraram após os filtros
+            var totalItemCount = await query.CountAsync();
+
+            // B. Pega apenas os 10 itens da página atual
+            var items = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // C. Cria a lista paginada que a View espera
+            var listaPaginada = new StaticPagedList<Ativo>(items, pageIndex, pageSize, totalItemCount);
+
+            return View(listaPaginada);
         }
+
+        // --- MÉTODOS PADRÃO (Create, Edit, Delete, Details) ---
+        // (Mantenha os outros métodos Create, Edit, Delete, Details exatamente como estavam no seu código anterior)
+        // ...
 
         // GET: Ativos/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
-            var ativo = await _context.Ativos
-                // O "Include" é a mágica: traz os dados da tabela relacionada junto!
-                .Include(a => a.Historicos)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var ativo = await _context.Ativos.Include(a => a.Historicos).FirstOrDefaultAsync(m => m.Id == id);
             if (ativo == null) return NotFound();
-
             return View(ativo);
         }
 
-        // GET: Ativos/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
-        // POST: Ativos/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nome,Patrimonio,Tipo,Marca,Modelo,Setor,Status")] Ativo ativo)
@@ -86,110 +100,65 @@ namespace GerenciadorAtivos.Controllers
             if (ModelState.IsValid)
             {
                 _context.Add(ativo);
-                await _context.SaveChangesAsync(); // Aqui o ativo ganha o ID
-
-                // ADICIONE ESTA LINHA:
-                await RegistrarHistorico(ativo.Id, "Criação", "Ativo cadastrado inicialmente no sistema.");
-
+                await _context.SaveChangesAsync();
+                await RegistrarHistorico(ativo.Id, "Criação", "Ativo cadastrado inicialmente.");
                 return RedirectToAction(nameof(Index));
             }
             return View(ativo);
         }
 
-        // GET: Ativos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
             var ativo = await _context.Ativos.FindAsync(id);
-            if (ativo == null)
-            {
-                return NotFound();
-            }
+            if (ativo == null) return NotFound();
             return View(ativo);
         }
 
-        // POST: Ativos/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Patrimonio,Tipo,Marca,Modelo,Setor,Status")] Ativo ativo)
         {
-            if (id != ativo.Id)
-            {
-                return NotFound();
-            }
-
+            if (id != ativo.Id) return NotFound();
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Update(ativo);
                     await _context.SaveChangesAsync();
-
-                    // ADICIONE ESTA LINHA:
-                    await RegistrarHistorico(ativo.Id, "Atualização", $"Dados do ativo atualizados. Status atual: {ativo.Status}");
+                    await RegistrarHistorico(ativo.Id, "Atualização", $"Status atual: {ativo.Status}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AtivoExists(ativo.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!AtivoExists(ativo.Id)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(ativo);
         }
 
-        // GET: Ativos/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var ativo = await _context.Ativos
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (ativo == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
+            var ativo = await _context.Ativos.FirstOrDefaultAsync(m => m.Id == id);
+            if (ativo == null) return NotFound();
             return View(ativo);
         }
 
-        // POST: Ativos/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var ativo = await _context.Ativos.FindAsync(id);
-            if (ativo != null)
-            {
-                _context.Ativos.Remove(ativo);
-            }
-
+            if (ativo != null) _context.Ativos.Remove(ativo);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AtivoExists(int id)
-        {
-            return _context.Ativos.Any(e => e.Id == id);
-        }
-    
-    // Método auxiliar para registrar histórico sem repetir código
-private async Task RegistrarHistorico(int ativoId, string tipoAcao, string descricao)
+        private bool AtivoExists(int id) => _context.Ativos.Any(e => e.Id == id);
+
+        private async Task RegistrarHistorico(int ativoId, string tipoAcao, string descricao)
         {
             var historico = new Historico
             {
@@ -198,12 +167,9 @@ private async Task RegistrarHistorico(int ativoId, string tipoAcao, string descr
                 Descricao = descricao,
                 DataAcao = DateTime.Now,
                 Usuario = User.Identity?.Name ?? "Sistema"
-
             };
-
             _context.Historicos.Add(historico);
             await _context.SaveChangesAsync();
         }
-
     }
 }

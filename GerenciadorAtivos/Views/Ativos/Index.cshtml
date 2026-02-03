@@ -1,70 +1,90 @@
-﻿@model GerenciadorAtivos.Helpers.PaginatedList<GerenciadorAtivos.Models.Ativo>
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<GerenciadorAtivos.Models.Ativo>
 
 @{
-    ViewData["Title"] = "Listagem de Ativos";
+    ViewData["Title"] = "Inventário";
 
-    // 1. Gera a lista baseada no Enum
-    var listaStatus = Html.GetEnumSelectList<GerenciadorAtivos.Models.StatusAtivo>();
+    // Lógica para manter os selects selecionados (igual fizemos antes)
+    var statusList = Html.GetEnumSelectList<GerenciadorAtivos.Models.StatusAtivo>();
+    var setorList = Html.GetEnumSelectList<GerenciadorAtivos.Models.SetorAtivo>();
+    var tipoList = Html.GetEnumSelectList<GerenciadorAtivos.Models.TipoAtivo>();
 
-    // 2. Recupera o objeto cru do ViewData
-    var rawStatus = ViewData["CurrentStatus"];
-
-    // 3. Verifica se NÃO é nulo antes de mexer (Isso elimina o Warning CS8605)
-    if (rawStatus != null)
+    if (ViewData["StatusFilter"] != null)
     {
-        // Converte explicitamente para int (pega o número 1, 2...) e depois para String
-        string valorParaComparar = ((int)rawStatus).ToString();
-
-        // 4. Marca o item correto
-        foreach (var item in listaStatus)
-        {
-            if (item.Value == valorParaComparar)
-            {
-                item.Selected = true;
-                break;
-            }
-        }
+        var val = Convert.ToInt32(ViewData["StatusFilter"]).ToString();
+        var selected = statusList.FirstOrDefault(x => x.Value == val);
+        if (selected != null) { selected.Selected = true; }
+    }
+    if (ViewData["SetorFilter"] != null)
+    {
+        var val = Convert.ToInt32(ViewData["SetorFilter"]).ToString();
+        var selected = setorList.FirstOrDefault(x => x.Value == val);
+        if (selected != null) { selected.Selected = true; }
+    }
+    if (ViewData["TipoFilter"] != null)
+    {
+        var val = Convert.ToInt32(ViewData["TipoFilter"]).ToString();
+        var selected = tipoList.FirstOrDefault(x => x.Value == val);
+        if (selected != null) { selected.Selected = true; }
     }
 }
 
-<style>
-    .thead-azul th {
-        background-color: #004aad !important;
-        color: white !important;
-    }
-</style>
+<h1>Inventário de Ativos</h1>
 
-<h1>Inventário de TI</h1>
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form asp-action="Index" method="get">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="text" name="searchString" class="form-control" placeholder="Nome ou Patrimônio..." value="@ViewData["CurrentFilter"]">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
 
-<div class="row mt-3 mb-4 align-items-center">
-    <div class="col-md-6 mb-2 mb-md-0">
-        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary me-2">
-            Início
-        </a>
-        <a asp-action="Create" class="btn btn-primary">
-            Novo Ativo
-        </a>
-    </div>
+                        @if (ViewData["CurrentFilter"] != null || ViewData["StatusFilter"] != null || ViewData["SetorFilter"] != null || ViewData["TipoFilter"] != null)
+                        {
+                            <a asp-action="Index" class="btn btn-outline-secondary" title="Limpar Filtros">
+                                <i class="bi bi-x-lg"></i> Limpar
+                            </a>
+                        }
+                    </div>
+                </div>
 
-    <div class="col-md-6">
-        <form asp-action="Index" method="get" class="d-flex gap-2 justify-content-end">
+                <div class="col-md-7 text-end">
+                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvancados" aria-expanded="false">
+                        <i class="bi bi-funnel"></i> Filtros Avançados ▼
+                    </button>
+                    <a asp-action="Create" class="btn btn-success ms-2"> Novo Ativo</a>
+                </div>
+            </div>
 
-            <select name="statusFilter" class="form-select" style="max-width: 160px;"
-                    asp-items="listaStatus">
-                <option value="">Todos Status</option>
-            </select>
-
-            <input type="text" name="searchString" class="form-control"
-                   placeholder="Nome ou Patrimônio..."
-                   value="@ViewData["CurrentFilter"]" />
-
-            <button type="submit" class="btn btn-primary">
-                Buscar
-            </button>
-
-            <a asp-action="Index" class="btn btn-outline-dark">
-                Limpar
-            </a>
+            <div class="collapse mt-3 @((ViewData["StatusFilter"] != null || ViewData["SetorFilter"] != null || ViewData["TipoFilter"] != null) ? "show" : "")" id="filtrosAvancados">
+                <div class="card card-body bg-light">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="statusFilter" class="form-select" asp-items="statusList">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Setor</label>
+                            <select name="setorFilter" class="form-select" asp-items="setorList">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipoFilter" class="form-select" asp-items="tipoList">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Aplicar Filtros</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
 </div>
@@ -87,7 +107,14 @@
                 <td class="fw-bold">@Html.DisplayFor(modelItem => item.Nome)</td>
                 <td><code>@Html.DisplayFor(modelItem => item.Patrimonio)</code></td>
                 <td>@Html.DisplayFor(modelItem => item.Tipo)</td>
-                <td>@Html.DisplayFor(modelItem => item.Setor)</td>
+                <td>
+                    @{
+                        // Busca o TEXTO do Enum comparando com o VALOR (ID) salvo no banco
+                        var setorTexto = Html.GetEnumSelectList<GerenciadorAtivos.Models.SetorAtivo>()
+                        .FirstOrDefault(x => x.Value == item.Setor)?.Text ?? item.Setor;
+                    }
+                    @setorTexto
+                </td>
                 <td>
                     @{
                         string corBadge = "bg-secondary";
@@ -110,28 +137,27 @@
     </tbody>
 </table>
 
-@{
-    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-}
-
 <div class="d-flex justify-content-center align-items-center mt-4 gap-3">
+    @{
+        var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+        var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+    }
     <a asp-action="Index"
-       asp-route-pageNumber="@(Model.PageIndex - 1)"
-       asp-route-statusFilter="@ViewData["CurrentStatus"]"
+       asp-route-pageNumber="@(Model.PageNumber - 1)"
        asp-route-searchString="@ViewData["CurrentFilter"]"
+       asp-route-statusFilter="@ViewData["StatusFilter"]"
+       asp-route-setorFilter="@ViewData["SetorFilter"]"
+       asp-route-tipoFilter="@ViewData["TipoFilter"]"
        class="btn btn-outline-primary @prevDisabled">
         &laquo; Anterior
     </a>
-
-    <span class="fw-bold text-muted">
-        Página @Model.PageIndex de @Model.TotalPages
-    </span>
-
+    <span class="fw-bold text-muted">Página @Model.PageNumber de @Model.PageCount</span>
     <a asp-action="Index"
-       asp-route-pageNumber="@(Model.PageIndex + 1)"
-       asp-route-statusFilter="@ViewData["CurrentStatus"]"
+       asp-route-pageNumber="@(Model.PageNumber + 1)"
        asp-route-searchString="@ViewData["CurrentFilter"]"
+       asp-route-statusFilter="@ViewData["StatusFilter"]"
+       asp-route-setorFilter="@ViewData["SetorFilter"]"
+       asp-route-tipoFilter="@ViewData["TipoFilter"]"
        class="btn btn-outline-primary @nextDisabled">
         Próximo &raquo;
     </a>

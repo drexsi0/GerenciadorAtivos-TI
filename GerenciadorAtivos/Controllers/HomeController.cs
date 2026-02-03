@@ -38,8 +38,11 @@ namespace GerenciadorAtivos.Controllers
                         g => g.Count()),
 
                 AtivosPorSetor = ativos
-                    .GroupBy(x => x.Setor)
-                    .ToDictionary(g => g.Key.ToString(), g => g.Count())
+    .GroupBy(x => x.Setor) // x.Setor aqui é um SetorAtivo (Enum)
+    .ToDictionary(
+        g => g.Key.ToString(), // Chave = "Desenvolvimento" (Nome do Enum)
+        g => g.Count()
+    )
             };
 
             return View(viewModel);

@@ -2,6 +2,28 @@
 
 @{
     ViewData["Title"] = "Dashboard";
+
+    // --- PROCESSAMENTO DE DADOS DO GRÁFICO DE SETOR ---
+    // Precisamos separar: O que mostramos (Nome) do que usamos no link (ID)
+    var labelsSetor = new List<string>();
+    var dataSetor = new List<int>();
+    var idsSetor = new List<string>(); // Guarda o ID "1", "2" para o redirecionamento
+
+    // Pega a lista oficial de nomes dos setores
+    var listaSetores = Html.GetEnumSelectList<GerenciadorAtivos.Models.SetorAtivo>();
+
+    foreach (var item in Model.AtivosPorSetor)
+    {
+        // item.Key vem como "1", "2" (ID do banco)
+        // item.Value é a quantidade
+
+        // Tenta achar o nome bonito baseado no ID
+        var nomeBonito = listaSetores.FirstOrDefault(x => x.Value == item.Key)?.Text ?? item.Key;
+
+        labelsSetor.Add(nomeBonito); // Mostra "TI - Infraestrutura"
+        idsSetor.Add(item.Key);      // Guarda "2"
+        dataSetor.Add(item.Value);   // Guarda 5
+    }
 }
 
 <div class="text-center mb-5">
@@ -86,17 +108,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        // -- Configuração do Gráfico de SETOR (Barras) --
+        // --- GRÁFICO DE SETOR (BARRAS) ---
         var ctxSetor = document.getElementById('graficoSetor').getContext('2d');
-        var dadosSetor = @Html.Raw(Json.Serialize(Model.AtivosPorSetor));
+
+        // Injetando os Arrays processados no C#
+        var labelsSetor = @Html.Raw(Json.Serialize(labelsSetor));
+        var dataSetor = @Html.Raw(Json.Serialize(dataSetor));
+        var idsSetor = @Html.Raw(Json.Serialize(idsSetor)); // Array oculto de IDs
 
         new Chart(ctxSetor, {
             type: 'bar',
             data: {
-                labels: Object.keys(dadosSetor),
+                labels: labelsSetor, // Mostra o Nome (Ex: TI - Infra)
                 datasets: [{
                     label: 'Quantidade',
-                    data: Object.values(dadosSetor),
+                    data: dataSetor,     // Mostra o Valor (Ex: 5)
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
@@ -104,15 +130,30 @@
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+
+                // LÓGICA DE CLIQUE INTELIGENTE
+                onClick: (evt, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+
+                        // O Pulo do Gato: Pegamos o ID do array oculto, não o Label
+                        const setorId = idsSetor[index];
+
+                        // Redireciona enviando o ID ("2") que o filtro entende
+                        window.location.href = '/Ativos?setorFilter=' + encodeURIComponent(setorId);
+                    }
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
                 }
             }
         });
 
-        // -- Configuração do Gráfico de STATUS (Rosca) --
+        // --- GRÁFICO DE STATUS (ROSCA) ---
+        // (Status geralmente já vem com o nome certo do Enum, mantemos a lógica padrão)
         var ctxStatus = document.getElementById('graficoStatus').getContext('2d');
-        var dadosStatus = @Html.Raw(Json.Serialize(Model.AtivosPorStatus));
+        var dadosStatus = JSON.parse('@Html.Raw(Json.Serialize(Model.AtivosPorStatus))');
 
         new Chart(ctxStatus, {
             type: 'doughnut',
@@ -124,7 +165,19 @@
                     hoverOffset: 4
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                onClick: (evt, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const statusNome = Object.keys(dadosStatus)[index];
+                        window.location.href = '/Ativos?statusFilter=' + encodeURIComponent(statusNome);
+                    }
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                }
+            }
         });
     </script>
 }
