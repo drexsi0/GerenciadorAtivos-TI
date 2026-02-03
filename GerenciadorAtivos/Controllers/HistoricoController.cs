@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using GerenciadorAtivos.Data;
 using X.PagedList;
-using Microsoft.AspNetCore.Authorization; // 1. Namespace de Segurança
+using Microsoft.AspNetCore.Authorization;
 
 namespace GerenciadorAtivos.Controllers
 {
-    [Authorize] // 2. A Tranca: Ninguém entra aqui sem login!
+    [Authorize]
     public class HistoricoController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -16,16 +16,34 @@ namespace GerenciadorAtivos.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? pageNumber)
+        public async Task<IActionResult> Index(int? pageNumber, string searchString, string tipoAcao)
         {
-            // Paginação Manual
-            int pageSize = 20;
-            int pageIndex = pageNumber ?? 1;
+            // Armazena filtros para a View manter os campos preenchidos
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["TipoAcaoFilter"] = tipoAcao;
 
             var query = _context.Historicos
                 .Include(h => h.Ativo)
                 .OrderByDescending(h => h.DataAcao)
                 .AsQueryable();
+
+            // 1. Filtro por Texto (Usuário, Nome do Ativo ou Descrição)
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                query = query.Where(h => (h.Usuario != null && h.Usuario.Contains(searchString))
+                                      || h.Descricao.Contains(searchString)
+                                      || (h.Ativo != null && h.Ativo.Nome.Contains(searchString)));
+            }
+
+            // 2. Filtro por Tipo de Ação (Dropdown)
+            if (!string.IsNullOrEmpty(tipoAcao))
+            {
+                query = query.Where(h => h.TipoAcao == tipoAcao);
+            }
+
+            // Paginação Manual
+            int pageSize = 20;
+            int pageIndex = pageNumber ?? 1;
 
             var totalItemCount = await query.CountAsync();
 
