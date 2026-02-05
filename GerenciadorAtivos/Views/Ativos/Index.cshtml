@@ -100,6 +100,7 @@
             <th>Tipo</th>
             <th>Setor</th>
             <th>Status</th>
+            <th>Valor Atual</th>
             <th>Ações</th>
         </tr>
     </thead>
@@ -128,6 +129,18 @@
                     }
                     <span class="badge @corBadge">@Html.DisplayFor(modelItem => item.Status)</span>
                 </td>
+
+                <td>
+                    <span class="fw-bold text-success">
+                        @item.ValorAtual.ToString("C")
+                    </span>
+
+                    <br />
+                    <small class="text-muted" title="Valor Pago na Compra">
+                        (Pago: @item.ValorCompra.ToString("C"))
+                    </small>
+                </td>
+
                 <td>
                     <div class="btn-group btn-group-sm">
                         @if (User.IsInRole("Admin"))

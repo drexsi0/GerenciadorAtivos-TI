@@ -31,6 +31,51 @@
     <p class="text-muted">Monitoramento de Ativos de TI em Tempo Real</p>
 </div>
 
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-left-primary shadow h-100 py-2 border-0 border-start border-4 border-primary">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Investimento Total (Pago)
+                        </div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800">
+                            @Model.ValorTotalInvestido.ToString("C")
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cash-coin fa-2x text-gray-300 display-4 text-primary opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-left-success shadow h-100 py-2 border-0 border-start border-4 border-success">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Valor Patrimonial Atual (Depreciado)
+                        </div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800">
+                            @Model.ValorTotalAtual.ToString("C")
+                        </div>
+                        <small class="text-danger">
+                            Perda de @((Model.ValorTotalInvestido - Model.ValorTotalAtual).ToString("C")) em depreciação
+                        </small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-graph-down-arrow fa-2x text-gray-300 display-4 text-success opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-3">
         <div class="card text-white bg-secondary mb-3 shadow">

@@ -33,17 +33,21 @@ namespace GerenciadorAtivos.Controllers
             {
                 var worksheet = workbook.Worksheets.Add("Ativos");
 
-                // 3. Cria o Cabeçalho
+                // 3. Cria o Cabeçalho (Adicionando colunas novas)
                 worksheet.Cell(1, 1).Value = "ID";
                 worksheet.Cell(1, 2).Value = "Nome";
                 worksheet.Cell(1, 3).Value = "Patrimônio";
                 worksheet.Cell(1, 4).Value = "Tipo";
-                worksheet.Cell(1, 5).Value = "Setor"; // Vamos traduzir o ID para Nome
+                worksheet.Cell(1, 5).Value = "Setor";
                 worksheet.Cell(1, 6).Value = "Status";
                 worksheet.Cell(1, 7).Value = "Marca/Modelo";
+                // NOVAS COLUNAS
+                worksheet.Cell(1, 8).Value = "Data Compra";
+                worksheet.Cell(1, 9).Value = "Valor Pago";
+                worksheet.Cell(1, 10).Value = "Valor Atual";
 
-                // Estiliza o cabeçalho (Negrito e Fundo Cinza)
-                var header = worksheet.Range("A1:G1");
+                // Estiliza o cabeçalho
+                var header = worksheet.Range("A1:J1"); // Aumentei de G1 para J1
                 header.Style.Font.Bold = true;
                 header.Style.Fill.BackgroundColor = XLColor.LightGray;
 
@@ -56,14 +60,9 @@ namespace GerenciadorAtivos.Controllers
                     worksheet.Cell(linha, 3).Value = item.Patrimonio;
                     worksheet.Cell(linha, 4).Value = item.Tipo.ToString();
 
-                    // TRADUÇÃO DO SETOR (ID -> Nome)
-                    // Como não temos o HtmlHelper aqui, fazemos no braço ou convertemos o Enum
-                    // Assumindo que o ID salvo bate com o Enum:
+                    // Lógica do Setor (mantém a que você já tem)
                     if (Enum.TryParse(item.Setor, out SetorAtivo setorEnum))
                     {
-                        // Pega o nome do Enum (Ex: "Desenvolvimento")
-                        // Se quiser o DisplayName (com espaços), precisaria de um Helper extra, 
-                        // mas para Excel rápido, o .ToString() resolve 90%
                         worksheet.Cell(linha, 5).Value = setorEnum.ToString();
                     }
                     else
@@ -74,7 +73,15 @@ namespace GerenciadorAtivos.Controllers
                     worksheet.Cell(linha, 6).Value = item.Status.ToString();
                     worksheet.Cell(linha, 7).Value = $"{item.Marca} {item.Modelo}";
 
-                    // Pinta a célula de status se estiver em Manutenção (Exemplo de condicional)
+                    // NOVOS DADOS
+                    worksheet.Cell(linha, 8).Value = item.DataCompra;
+                    worksheet.Cell(linha, 9).Value = item.ValorCompra;
+                    worksheet.Cell(linha, 9).Style.NumberFormat.Format = "R$ #,##0.00"; // Formata Dinheiro no Excel
+
+                    worksheet.Cell(linha, 10).Value = item.ValorAtual;
+                    worksheet.Cell(linha, 10).Style.NumberFormat.Format = "R$ #,##0.00"; // Formata Dinheiro no Excel
+
+                    // Pinta status Manutenção (mantém sua lógica)
                     if (item.Status == StatusAtivo.Manutencao)
                     {
                         worksheet.Cell(linha, 6).Style.Font.FontColor = XLColor.Red;

@@ -98,7 +98,7 @@ namespace GerenciadorAtivos.Controllers
         [ValidateAntiForgeryToken]
 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("Id,Nome,Patrimonio,Tipo,Marca,Modelo,Setor,Status")] Ativo ativo)
+        public async Task<IActionResult> Create([Bind("Id,Nome,Patrimonio,Tipo,Marca,Modelo,Setor,Status,ValorCompra,DataCompra")] Ativo ativo)
         {
             if (ModelState.IsValid)
             {
@@ -123,7 +123,7 @@ namespace GerenciadorAtivos.Controllers
         [ValidateAntiForgeryToken]
 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Patrimonio,Tipo,Marca,Modelo,Setor,Status")] Ativo ativo)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Patrimonio,Tipo,Marca,Modelo,Setor,Status,ValorCompra,DataCompra")] Ativo ativo)
         {
             if (id != ativo.Id) return NotFound();
             if (ModelState.IsValid)

@@ -2,6 +2,7 @@ using GerenciadorAtivos.Data; // Importante para ver o banco
 using GerenciadorAtivos.Models; // Importante para ver os Enums
 using GerenciadorAtivos.Models.ViewModels; // Importante para ver a ViewModel
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace GerenciadorAtivos.Controllers
@@ -18,9 +19,9 @@ namespace GerenciadorAtivos.Controllers
             _context = context; // O sistema entrega o banco pronto aqui
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var ativos = _context.Ativos.ToList();
+            var ativos = await _context.Ativos.ToListAsync();
 
             var viewModel = new DashboardViewModel
             {
@@ -29,8 +30,6 @@ namespace GerenciadorAtivos.Controllers
                 Disponiveis = ativos.Count(x => x.Status == StatusAtivo.Disponivel),
                 EmManutencao = ativos.Count(x => x.Status == StatusAtivo.Manutencao),
 
-                // Removida a lógica de ValorTotalPatrimonio
-
                 AtivosPorStatus = ativos
                     .GroupBy(x => x.Status)
                     .ToDictionary(
@@ -38,11 +37,14 @@ namespace GerenciadorAtivos.Controllers
                         g => g.Count()),
 
                 AtivosPorSetor = ativos
-    .GroupBy(x => x.Setor) // x.Setor aqui é um SetorAtivo (Enum)
-    .ToDictionary(
-        g => g.Key.ToString(), // Chave = "Desenvolvimento" (Nome do Enum)
-        g => g.Count()
-    )
+                    .GroupBy(x => x.Setor) // x.Setor aqui é um SetorAtivo (Enum)
+                    .ToDictionary(
+                        g => g.Key.ToString(), // Chave = "Desenvolvimento" (Nome do Enum)
+                        g => g.Count()),
+
+                // --- CÁLCULOS FINANCEIROS (NOVO) ---
+                ValorTotalInvestido = ativos.Sum(x => x.ValorCompra),
+                ValorTotalAtual = ativos.Sum(x => x.ValorAtual) // O C# calcula um por um e soma
             };
 
             return View(viewModel);
